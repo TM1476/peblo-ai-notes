@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import MarkdownEditor from './components/MarkdownEditor';
 
 export default function App() {
+  // Pull Base URL securely from Vite configurations with a smart local fallback
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
   // Core application states
   const [notes, setNotes] = useState([]);
   const [selectedNote, setSelectedNote] = useState(null);
@@ -33,7 +36,7 @@ export default function App() {
       : { name: authName, email: authEmail, password: authPassword };
     
     try {
-      const res = await fetch(`http://localhost:8000/auth/${endpoint}`, {
+      const res = await fetch(`${API_BASE_URL}/auth/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -68,7 +71,7 @@ export default function App() {
   // GET: Active authenticated user workspace records
   const fetchNotes = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/notes?search=${search}`, {
+      const res = await fetch(`${API_BASE_URL}/notes?search=${search}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -82,7 +85,7 @@ export default function App() {
   // GET: Metric insights calculation summary from backend
   const fetchInsights = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/insights`, {
+      const res = await fetch(`${API_BASE_URL}/insights`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -96,7 +99,7 @@ export default function App() {
   // POST: Create a new canvas node record
   const createNote = async () => {
     try {
-      const res = await fetch('http://localhost:8000/notes', {
+      const res = await fetch(`${API_BASE_URL}/notes`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json', 
@@ -125,7 +128,7 @@ export default function App() {
     setNotes(prevNotes => prevNotes.map(n => n.note_id === updatedFields.note_id ? updatedFields : n));
 
     try {
-      await fetch(`http://localhost:8000/notes/${updatedFields.note_id}`, {
+      await fetch(`${API_BASE_URL}/notes/${updatedFields.note_id}`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json', 
@@ -147,7 +150,7 @@ export default function App() {
   const runAIEngine = async (id) => {
     setLoadingAI(true);
     try {
-      const res = await fetch(`http://localhost:8000/notes/${id}/generate-summary`, {
+      const res = await fetch(`${API_BASE_URL}/notes/${id}/generate-summary`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -288,8 +291,7 @@ export default function App() {
                 type="text" 
                 className="text-2xl font-bold focus:outline-none bg-transparent w-full sm:w-2/3 border-b border-transparent hover:border-slate-200 focus:border-indigo-500 transition-colors" 
                 value={selectedNote.title} 
-                onChange={e => handleUpdate({ ...selectedNote, title: e.target.value })} 
-              />
+                onChange={e => handleUpdate({ ...selectedNote, title: e.target.value })} />
               <button 
                 onClick={() => runAIEngine(selectedNote.note_id)} 
                 disabled={loadingAI} 
